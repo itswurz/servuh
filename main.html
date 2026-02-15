@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .config-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .url-input-group input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .url-input-group button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .url-input-group button:hover {
+            background: #5568d3;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .data-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .data-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .word-list, .skull-list {
+            list-style: none;
+        }
+        
+        .word-item, .skull-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        
+        .word-item:hover, .skull-item:hover {
+            background: #e9ecef;
+        }
+        
+        .word-item .word {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .word-item .count {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .skull-item .author {
+            font-weight: 600;
+            color: #764ba2;
+        }
+        
+        .skull-item .content {
+            flex: 1;
+            margin: 0 15px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .skull-item .skulls {
+            background: #764ba2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💀 Discord Analytics</h1>
+        
+        <!-- Configuration Section -->
+        <div class="config-section">
+            <h3>API Configuration</h3>
+            <div class="url-input-group">
+                <input 
+                    type="text" 
+                    id="apiUrl" 
+                    placeholder="Enter your Cloudflare tunnel URL (e.g., https://abc-123.trycloudflare.com)"
+                    value="http://localhost:8000"
+                >
+                <button onclick="updateApiUrl()">Update & Test</button>
+            </div>
+            <div id="connectionStatus"></div>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Messages</h3>
+                <div class="value" id="totalMessages">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unique Authors</h3>
+                <div class="value" id="uniqueAuthors">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Skull Reactions</h3>
+                <div class="value" id="totalSkulls">💀 -</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last 24h Messages</h3>
+                <div class="value" id="recentMessages">-</div>
+            </div>
+        </div>
+        
+        <!-- Top Words -->
+        <div class="data-section">
+            <h2>📊 Most Used Words</h2>
+            <div id="topWordsContainer" class="loading">Loading...</div>
+        </div>
+        
+        <!-- Top Skulls -->
+        <div class="data-section">
+            <h2>💀 Top Skull Reactions (Last 7 Days)</h2>
+            <div id="topSkullsContainer" class="loading">Loading...</div>
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="refresh-btn" onclick="loadAllData()">🔄 Refresh Data</button>
+        </div>
+    </div>
+    
+    <script>
+        // API Configuration
+        let API_URL = 'http://localhost:8000';
+        
+        // Load saved API URL from localStorage
+        if (localStorage.getItem('apiUrl')) {
+            API_URL = localStorage.getItem('apiUrl');
+            document.getElementById('apiUrl').value = API_URL;
+        }
+        
+        // Update API URL and test connection
+        function updateApiUrl() {
+            const input = document.getElementById('apiUrl');
+            const url = input.value.trim();
+            
+            if (!url) {
+                showStatus('error', 'Please enter a valid URL');
+                return;
+            }
+            
+            // Remove trailing slash
+            API_URL = url.replace(/\/$/, '');
+            localStorage.setItem('apiUrl', API_URL);
+            
+            showStatus('info', 'Testing connection...');
+            
+            // Test connection
+            fetch(`${API_URL}/health`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'healthy') {
+                        showStatus('success', `✓ Connected! Database has ${data.message_count} messages`);
+                        loadAllData();
+                    } else {
+                        showStatus('error', 'API is not healthy');
+                    }
+                })
+                .catch(err => {
+                    showStatus('error', `Connection failed: ${err.message}`);
+                });
+        }
+        
+        // Show connection status
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+        
+        // Load all data
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadTopWords(),
+                loadTopSkulls()
+            ]);
+        }
+        
+        // Load overall stats
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/stats`);
+                const data = await response.json();
+                
+                document.getElementById('totalMessages').textContent = data.total_messages.toLocaleString();
+                document.getElementById('uniqueAuthors').textContent = data.unique_authors.toLocaleString();
+                document.getElementById('totalSkulls').textContent = `💀 ${data.total_skull_reactions.toLocaleString()}`;
+                document.getElementById('recentMessages').textContent = data.last_24h_messages.toLocaleString();
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+        
+        // Load top words
+        async function loadTopWords() {
+            const container = document.getElementById('topWordsContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/top-words?limit=20`);
+                const data = await response.json();
+                
+                if (data.top_words.length === 0) {
+                    container.innerHTML = '<p class="loading">No data yet. Start chatting in Discord!</p>';
+                    return;
+                }
+                
+                const list = document.createElement('ul');
+                list.className = 'word-list';
+                
+                data.top_words.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'word-item';
+                    li.innerHTML = `
+                        <span class="word">${item.word}</span>
+                        <span class="count">${item.count}</span>
+                    `;
+                    list.appendChild(li);
+                });
+                
+                container.innerHTML = '';
+                container.appendChild(list);
+            } catch (err) {
+                container.innerHTML = `<div class="error-message">Error loading words: ${err.message}</div>`;
+            }
+        }
+        
+        // Load top skull reactions
+        async function loadTopSkulls() {
+            const container = document.getElementById('topSkullsContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/top-skulls?limit=10&days=7`);
+                const data = await response.json();
+                
+                if (data.messages.length === 0) {
+                    container.innerHTML = '<p class="loading">No skull reactions yet. React with 💀 in Discord!</p>';
+                    return;
+                }
+                
+                const list = document.createElement('ul');
+                list.className = 'skull-list';
+                
+                data.messages.forEach(msg => {
+                    const li = document.createElement('li');
+                    li.className = 'skull-item';
+                    
+                    // Truncate long messages
+                    const content = msg.content.length > 80 
+                        ? msg.content.substring(0, 80) + '...' 
+                        : msg.content;
+                    
+                    li.innerHTML = `
+                        <span class="author">${msg.author}</span>
+                        <span class="content">${content}</span>
+                        <span class="skulls">💀 ${msg.skull_count}</span>
+                    `;
+                    list.appendChild(li);
+                });
+                
+                container.innerHTML = '';
+                container.appendChild(list);
+            } catch (err) {
+                container.innerHTML = `<div class="error-message">Error loading skull reactions: ${err.message}</div>`;
+            }
+        }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Test connection on load
+            updateApiUrl();
+        });
+    </script>
+</body>
+</html>
